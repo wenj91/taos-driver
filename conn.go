@@ -8,7 +8,7 @@ import (
 
 // Conn for db open
 type Conn struct {
-	Token string
+	token string
 }
 
 // Prepare statement for prepare exec

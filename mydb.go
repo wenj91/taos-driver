@@ -10,6 +10,6 @@ import (
 )
 
 func init() {
-	log.Println("register taoSql driver")
-	sql.Register("taoSql", &Driver{})
+	log.Println("register taosSql driver")
+	sql.Register("taosSql", &Driver{})
 }

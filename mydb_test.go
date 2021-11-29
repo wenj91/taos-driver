@@ -10,7 +10,7 @@ import (
 )
 
 func TestDb(t *testing.T) {
-	db, err := sql.Open("taoSql", "taoSql://dalong@127.0.0.1/demoapp")
+	db, err := sql.Open("taosSql", "root:taosdata@http(localhost:6041)/test")
 	if err != nil {
 		t.Errorf("some error %s", err.Error())
 	}
