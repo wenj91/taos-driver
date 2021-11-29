@@ -8,7 +8,7 @@
 
 ## 提示
 
-`github.com/taosdata/driver-go/v2` 对 v1 版本进行重构,分离出内置数据库操作接口 `database/sql/driver` 到目录 `taosSql`；订阅、stmt等其他功能放到目录 `af`。
+`github.com/wenj91/taos-driver` 是基于TDengine的RESTFul api重构的驱动版本，纯golang实现。
 
 ## 安装
 
@@ -23,7 +23,7 @@ go mod init taos-demo
 ```go
 import (
     "database/sql"
-    _ "github.com/taosdata/driver-go/v2/taosSql"
+    _ "github.com/wenj91/taos-driver"
 )
 ```
 
@@ -36,7 +36,7 @@ go mod tidy
 或通过`go get`直接下载安装：
 
 ```sh
-go get github.com/taosdata/driver-go/v2/taosSql
+go get github.com/wenj91/taos-driver
 ```
 
 ## 用法
@@ -53,7 +53,7 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/taosdata/driver-go/v2/taosSql"
+	_ "github.com/wenj91/taos-driver"
 )
 
 func main() {
@@ -116,46 +116,6 @@ func main() {
 - `func (db *DB) Close() error`
 
   sql.Open内置的方法，关闭DB对象。
-
-### 订阅接口
-
-Open DB:
-
-```go
-func Open(host, user, pass, db string, port int) (*Connector, error)
-```
-
-Subscribe:
-
-```go
-func (conn *Connector) Subscribe(restart bool, topic string, sql string, interval time.Duration) (Subscriber, error)
-```
-
-Topic:
-
-```go
-type Subscriber interface {
-    Consume() (driver.Rows, error)
-    Unsubscribe(keepProgress bool)
-}
-```
-
-详情参见示例代码：[`examples/taoslogtail.go`](examples/taoslogtail/taoslogtail.go)。
-
-## 目录结构
-
-driver-go  
-├── af //高级功能  
-├── common //通用方法以及常量  
-├── errors //错误类型  
-├── examples //样例  
-├── go.mod    
-├── go.sum  
-├── README-CN.md  
-├── README.md  
-├── taosSql // 数据库操作标准接口  
-├── types // 内置类型  
-└── wrapper // cgo 包装器
 
 ## 导航
 
