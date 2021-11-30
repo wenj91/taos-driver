@@ -67,3 +67,51 @@ func interpolateParams(query string, args []driver.Value) (string, error) {
 	}
 	return buf.String(), nil
 }
+
+// BOOL_TYPE      = 1
+// TINYINT_TYPE   = 2
+// SMALLINT_TYPE  = 3
+// INT_TYPE       = 4
+// BIGINT_TYPE    = 5
+// FLOAT_TYPE     = 6
+// DOUBLE_TYPE    = 7
+// BINARY_TYPE    = 8
+// TIMESTAMP_TYPE = 9
+// NCHAR_TYPE     = 10
+func convert(typ int, data interface{}) interface{} {
+
+	if nil == data {
+		return data
+	}
+
+	// todo: convert data to dest type
+	switch typ {
+	case BOOL_TYPE:
+
+	case TINYINT_TYPE:
+
+	case SMALLINT_TYPE:
+
+	case INT_TYPE:
+
+	case BIGINT_TYPE:
+
+	case FLOAT_TYPE:
+	case DOUBLE_TYPE:
+
+	case BINARY_TYPE:
+
+	case TIMESTAMP_TYPE:
+		ts := data.(int64)
+
+		tUnix := ts / int64(time.Microsecond)
+		tUnixNanoRemainder := (ts % int64(time.Microsecond)) * int64(time.Millisecond)
+		timeT := time.Unix(tUnix, tUnixNanoRemainder)
+
+		return timeT
+	case NCHAR_TYPE:
+
+	}
+
+	return data
+}

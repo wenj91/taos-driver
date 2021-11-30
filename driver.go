@@ -78,7 +78,7 @@ func (driver *Driver) query(sql string) ([]byte, error) {
 	url := "http://" +
 		driver.cfg.addr + ":" +
 		strconv.Itoa(driver.cfg.port) +
-		"/rest/sql/" +
+		"/rest/sqlt/" +
 		driver.cfg.dbName
 
 	method := "POST"
