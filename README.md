@@ -102,7 +102,6 @@ func main() {
   来使用`/etc/taos/taos.cfg`中的多EP配置。
 
   **注意**： 该API成功创建的时候，并没有做权限等检查，只有在真正执行Query或者Exec的时候才能真正的去创建连接，并同时检查user/password/host/port是不是合法。
-  另外，由于整个驱动程序大部分实现都下沉到taosSql所依赖的libtaos中。所以，sql.Open本身特别轻量。
 
 - `func (db *DB) Exec(query string, args ...interface{}) (Result, error)`
 
