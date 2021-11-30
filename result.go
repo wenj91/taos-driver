@@ -1,14 +1,14 @@
 package taos
 
-type TaosResult struct {
+type taosResult struct {
 	LId int64
 	RAf int64
 }
 
-func (tr *TaosResult) LastInsertId() (int64, error) {
+func (tr *taosResult) LastInsertId() (int64, error) {
 	return tr.LId, nil
 }
 
-func (tr *TaosResult) RowsAffected() (int64, error) {
+func (tr *taosResult) RowsAffected() (int64, error) {
 	return tr.RAf, nil
 }

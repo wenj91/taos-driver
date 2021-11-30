@@ -6,8 +6,13 @@ import (
 	"testing"
 
 	_ "github.com/wenj91/taos-driver"
-	mydb "github.com/wenj91/taos-driver"
 )
+
+// MyTb tb1 demo model
+type MyTb struct {
+	Time string
+	A    int
+}
 
 func TestDb(t *testing.T) {
 	db, err := sql.Open("taosSql", "root:taosdata@http(localhost:6041)/test")
@@ -28,11 +33,11 @@ func TestDb(t *testing.T) {
 		log.Fatal("some wrong for query", err.Error())
 	}
 	for rows.Next() {
-		var user mydb.MyUser
-		if err := rows.Scan(&user.Name, &user.Age); err != nil {
+		var tb MyTb
+		if err := rows.Scan(&tb.Time, &tb.A); err != nil {
 			log.Println("scan value erro", err.Error())
 		} else {
-			log.Println(user)
+			log.Println(tb)
 		}
 	}
 
@@ -44,11 +49,11 @@ func TestDb(t *testing.T) {
 		log.Fatal("some wrong for query", err.Error())
 	}
 	for rows.Next() {
-		var user mydb.MyUser
-		if err := rows.Scan(&user.Name, &user.Age); err != nil {
+		var tb MyTb
+		if err := rows.Scan(&tb.Time, &tb.A); err != nil {
 			log.Println("scan value erro", err.Error())
 		} else {
-			log.Println(user)
+			log.Println(tb)
 		}
 	}
 }

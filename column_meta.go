@@ -1,6 +1,6 @@
 package taos
 
-type ColumnMeta struct {
+type columnMeta struct {
 	Name string
 	Type int
 	Len  int

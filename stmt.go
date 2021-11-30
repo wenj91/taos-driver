@@ -7,20 +7,20 @@ import (
 	"log"
 )
 
-// TaosStmt for sql statement
-type TaosStmt struct {
+// taosStmt for sql statement
+type taosStmt struct {
 	sqlStr     string
 	paramCount int
-	conn       *Conn
+	conn       *conn
 }
 
 // Close  implement for stmt
-func (stmt *TaosStmt) Close() error {
+func (stmt *taosStmt) Close() error {
 	return nil
 }
 
 // Query  implement for Query
-func (stmt *TaosStmt) Query(args []driver.Value) (driver.Rows, error) {
+func (stmt *taosStmt) Query(args []driver.Value) (driver.Rows, error) {
 	log.Println("do query", args)
 
 	querySql := stmt.sqlStr
@@ -50,11 +50,11 @@ func (stmt *TaosStmt) Query(args []driver.Value) (driver.Rows, error) {
 		return nil, errors.New(any.Get("code").ToString() + ":" + any.Get("desc").ToString())
 	}
 
-	cms := make([]*ColumnMeta, 0)
+	cms := make([]*columnMeta, 0)
 	iter := any.Get("column_meta")
 	for i := 0; i < iter.Size(); i++ {
 		item := iter.Get(i)
-		cm := &ColumnMeta{}
+		cm := &columnMeta{}
 
 		any2 := jsoniter.Get([]byte(item.ToString()))
 		cm.Name = any2.Get(0).ToString()
@@ -88,7 +88,7 @@ func (stmt *TaosStmt) Query(args []driver.Value) (driver.Rows, error) {
 	}
 
 	size := any.Get("rows").ToInt64()
-	taosRows := TaosRows{
+	taosRows := taosRows{
 		Size:        size,
 		Len:         size,
 		Cols:        cols,
@@ -100,13 +100,13 @@ func (stmt *TaosStmt) Query(args []driver.Value) (driver.Rows, error) {
 }
 
 // NumInput row numbers
-func (stmt *TaosStmt) NumInput() int {
+func (stmt *taosStmt) NumInput() int {
 	// don't know how many row numbers
 	return stmt.paramCount
 }
 
 // Exec exec  implement
-func (stmt *TaosStmt) Exec(args []driver.Value) (driver.Result, error) {
+func (stmt *taosStmt) Exec(args []driver.Value) (driver.Result, error) {
 
 	querySql := stmt.sqlStr
 	if len(args) != 0 {
@@ -135,7 +135,7 @@ func (stmt *TaosStmt) Exec(args []driver.Value) (driver.Result, error) {
 		return nil, errors.New("[" + any.Get("code").ToString() + "]:" + any.Get("desc").ToString())
 	}
 
-	re := &TaosResult{
+	re := &taosResult{
 		RAf: any.Get("data", 0).ToInt64(),
 	}
 

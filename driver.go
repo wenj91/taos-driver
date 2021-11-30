@@ -39,7 +39,7 @@ func (driver *Driver) Open(name string) (driver.Conn, error) {
 		return nil, err
 	}
 
-	return &Conn{
+	return &conn{
 		token: token,
 		drv:   driver,
 	}, nil
