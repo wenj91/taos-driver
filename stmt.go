@@ -1,20 +1,17 @@
-package mydb
+package taos
 
 import (
 	"database/sql/driver"
 	"errors"
-	"fmt"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"strings"
-
 	jsoniter "github.com/json-iterator/go"
+	"log"
 )
 
 // TaosStmt for sql statement
 type TaosStmt struct {
-	SQL string
+	sqlStr     string
+	paramCount int
+	conn       *Conn
 }
 
 // Close  implement for stmt
@@ -26,59 +23,56 @@ func (stmt *TaosStmt) Close() error {
 func (stmt *TaosStmt) Query(args []driver.Value) (driver.Rows, error) {
 	log.Println("do query", args)
 
-	url := "http://127.0.0.1:6041/rest/sql"
-	method := "GET"
+	querySql := stmt.sqlStr
+	if len(args) != 0 {
+		if !stmt.conn.drv.cfg.interpolateParams {
+			return nil, driver.ErrSkip
+		}
 
-	payload := strings.NewReader(stmt.SQL)
+		// try client-side prepare to reduce roundtrip
+		prepared, err := interpolateParams(stmt.sqlStr, args)
+		if err != nil {
+			return nil, err
+		}
+		querySql = prepared
+	}
 
-	client := &http.Client{}
-	req, err := http.NewRequest(method, url, payload)
-
+	query, err := stmt.conn.drv.query(querySql)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	req.Header.Add("Authorization", "Basic cm9vdDp0YW9zZGF0YQ==")
-	req.Header.Add("Content-Type", "text/plain")
 
-	res, err := client.Do(req)
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	defer res.Body.Close()
+	any := jsoniter.Get(query)
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	log.Println(string(body))
-
-	status := jsoniter.Get(body, "status").ToString()
+	status := any.Get("status").ToString()
 	if status != "succ" {
-		return nil, errors.New(jsoniter.Get(body, "code").ToString() + ":" + jsoniter.Get(body, "desc").ToString())
+		return nil, errors.New(any.Get("code").ToString() + ":" + any.Get("desc").ToString())
 	}
 
 	cms := make([]*ColumnMeta, 0)
-	iter := jsoniter.Get(body, "column_meta")
+	iter := any.Get("column_meta")
 	for i := 0; i < iter.Size(); i++ {
 		item := iter.Get(i)
 		cm := &ColumnMeta{}
 
-		any := jsoniter.Get([]byte(item.ToString()))
-		cm.Name = any.Get(0).ToString()
-		cm.Type = any.Get(1).ToInt()
-		cm.Len = any.Get(2).ToInt()
+		any2 := jsoniter.Get([]byte(item.ToString()))
+		cm.Name = any2.Get(0).ToString()
+		cm.Type = any2.Get(1).ToInt()
+		cm.Len = any2.Get(2).ToInt()
 
 		cms = append(cms, cm)
 	}
 
 	cols := make([]string, 0)
-	ss := jsoniter.Get(body, "head").ToString()
-	jsoniter.Unmarshal([]byte(ss), &cols)
+	ss := any.Get("head").ToString()
+	err = jsoniter.Unmarshal([]byte(ss), &cols)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
 
-	iterData := jsoniter.Get(body, "data")
+	iterData := any.Get("data")
 	data := make([][]interface{}, 0)
 	for i := 0; i < iterData.Size(); i++ {
 		item := iterData.Get(i)
@@ -93,8 +87,8 @@ func (stmt *TaosStmt) Query(args []driver.Value) (driver.Rows, error) {
 		data = append(data, dataItem)
 	}
 
-	size := jsoniter.Get(body, "rows").ToInt64()
-	myrows := TaosRows{
+	size := any.Get("rows").ToInt64()
+	taosRows := TaosRows{
 		Size:        size,
 		Len:         size,
 		Cols:        cols,
@@ -102,53 +96,47 @@ func (stmt *TaosStmt) Query(args []driver.Value) (driver.Rows, error) {
 		Data:        data,
 	}
 
-	return &myrows, nil
+	return &taosRows, nil
 }
 
 // NumInput row numbers
 func (stmt *TaosStmt) NumInput() int {
 	// don't know how many row numbers
-	return -1
+	return stmt.paramCount
 }
 
 // Exec exec  implement
 func (stmt *TaosStmt) Exec(args []driver.Value) (driver.Result, error) {
-	url := "http://127.0.0.1:6041/rest/sql"
-	method := "GET"
 
-	payload := strings.NewReader(stmt.SQL)
+	querySql := stmt.sqlStr
+	if len(args) != 0 {
+		if !stmt.conn.drv.cfg.interpolateParams {
+			return nil, driver.ErrSkip
+		}
 
-	client := &http.Client{}
-	req, err := http.NewRequest(method, url, payload)
+		// try client-side prepare to reduce roundtrip
+		prepared, err := interpolateParams(stmt.sqlStr, args)
+		if err != nil {
+			return nil, err
+		}
+		querySql = prepared
+	}
 
+	query, err := stmt.conn.drv.query(querySql)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil, err
 	}
-	req.Header.Add("Authorization", "Basic cm9vdDp0YW9zZGF0YQ==")
-	req.Header.Add("Content-Type", "text/plain")
 
-	res, err := client.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	defer res.Body.Close()
+	any := jsoniter.Get(query)
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-	fmt.Println(string(body))
-
-	status := jsoniter.Get(body, "status").ToString()
+	status := any.Get("status").ToString()
 	if status != "succ" {
-		return nil, errors.New("[" + jsoniter.Get(body, "code").ToString() + "]:" + jsoniter.Get(body, "desc").ToString())
+		return nil, errors.New("[" + any.Get("code").ToString() + "]:" + any.Get("desc").ToString())
 	}
 
 	re := &TaosResult{
-		RAf: jsoniter.Get(body, "data", 0).ToInt64(),
+		RAf: any.Get("data", 0).ToInt64(),
 	}
 
 	return re, nil

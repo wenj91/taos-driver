@@ -1,4 +1,4 @@
-package mydb
+package taos
 
 type TaosResult struct {
 	LId int64

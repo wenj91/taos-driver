@@ -1,4 +1,4 @@
-package mydb
+package taos
 
 type ColumnMeta struct {
 	Name string

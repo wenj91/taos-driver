@@ -1,6 +1,6 @@
 //! TDengine error codes.
 //! THIS IS AUTO GENERATED FROM TDENGINE <taoserror.h>, MAKE SURE YOU KNOW WHAT YOU ARE CHANING.
-package mydb
+package taos
 
 import "fmt"
 
@@ -614,7 +614,7 @@ var (
 	}
 	ErrTscSqlSyntaxError = &TaosError{
 		Code:   TSC_SQL_SYNTAX_ERROR,
-		ErrStr: "Syntax error in SQL",
+		ErrStr: "Syntax error in sqlStr",
 	}
 	ErrTscDbNotSelected = &TaosError{
 		Code:   TSC_DB_NOT_SELECTED,
@@ -626,7 +626,7 @@ var (
 	}
 	ErrTscExceedSqlLimit = &TaosError{
 		Code:   TSC_EXCEED_SQL_LIMIT,
-		ErrStr: "SQL statement too long check maxSQLLength config",
+		ErrStr: "sqlStr statement too long check maxSQLLength config",
 	}
 	ErrTscFileEmpty = &TaosError{
 		Code:   TSC_FILE_EMPTY,

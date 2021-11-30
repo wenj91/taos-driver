@@ -1,4 +1,4 @@
-package mydb
+package taos
 
 // MyUser user demo model
 type MyUser struct {

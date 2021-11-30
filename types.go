@@ -1,4 +1,4 @@
-package mydb
+package taos
 
 // 1：BOOL
 // 2：TINYINT

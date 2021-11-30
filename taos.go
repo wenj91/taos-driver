@@ -2,7 +2,7 @@
 
 // this is a demo golang driver for test
 
-package mydb
+package taos
 
 import (
 	"database/sql"

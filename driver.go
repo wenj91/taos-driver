@@ -1,16 +1,21 @@
-package mydb
+package taos
 
 import (
 	"database/sql/driver"
 	"errors"
+	"fmt"
 	jsoniter "github.com/json-iterator/go"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"strconv"
+	"strings"
 )
 
 // Driver mydb driver for implement database/sql/driver
 type Driver struct {
 	cfg *config
+	cli *http.Client
 }
 
 func init() {
@@ -27,6 +32,7 @@ func (driver *Driver) Open(name string) (driver.Conn, error) {
 	}
 
 	driver.cfg = cfg
+	driver.cli = &http.Client{}
 
 	token, err := driver.login()
 	if err != nil {
@@ -35,6 +41,7 @@ func (driver *Driver) Open(name string) (driver.Conn, error) {
 
 	return &Conn{
 		token: token,
+		drv:   driver,
 	}, nil
 }
 
@@ -46,7 +53,7 @@ func (driver *Driver) login() (string, error) {
 		driver.cfg.user + "/" +
 		driver.cfg.passwd
 
-	res, err := doGet(url)
+	res, err := driver.doGet(url)
 	if nil != err {
 		return "", err
 	}
@@ -62,26 +69,72 @@ func (driver *Driver) login() (string, error) {
 	return any.Get("desc").ToString(), nil
 }
 
-func (driver *Driver) useDB() (string, error) {
+func (driver *Driver) useDB() error {
+	_, err := driver.query("use " + driver.cfg.dbName)
+	return err
+}
+
+func (driver *Driver) query(sql string) ([]byte, error) {
 	url := "http://" +
 		driver.cfg.addr + ":" +
 		strconv.Itoa(driver.cfg.port) +
-		"/rest/login/" +
-		driver.cfg.user + "/" +
-		driver.cfg.passwd
+		"/rest/sql/" +
+		driver.cfg.dbName
 
-	res, err := doGet(url)
-	if nil != err {
-		return "", err
+	method := "POST"
+
+	payload := strings.NewReader(sql)
+
+	req, err := http.NewRequest(method, url, payload)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
 	}
 
-	any := jsoniter.Get(res)
+	// Set the auth for the request.
+	req.SetBasicAuth(driver.cfg.user, driver.cfg.passwd)
+	req.Header.Add("Content-Type", "text/plain")
 
-	status := any.Get("status").ToString()
-	if status != "succ" {
-		return "", errors.New("[" + any.Get("code").ToString() +
-			"]" + any.Get("desc").ToString())
+	res, err := driver.cli.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
 	}
+	defer res.Body.Close()
 
-	return any.Get("desc").ToString(), nil
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	fmt.Println(string(body))
+
+	return body, nil
+}
+
+func (driver *Driver) doGet(urlStr string) ([]byte, error) {
+	method := "GET"
+
+	req, err := http.NewRequest(method, urlStr, nil)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	res, err := driver.cli.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	fmt.Println(string(body))
+
+	return body, nil
 }

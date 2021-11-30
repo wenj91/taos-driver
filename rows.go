@@ -1,4 +1,4 @@
-package mydb
+package taos
 
 import (
 	"database/sql/driver"
