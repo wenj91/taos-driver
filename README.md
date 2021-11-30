@@ -3,7 +3,7 @@
 [![Build Status](https://cloud.drone.io/api/badges/taosdata/driver-go/status.svg)](https://cloud.drone.io/taosdata/driver-go)
 
 
-[TDengine]提供了GO驱动程序 [`taosSql`][driver-go]，实现了GO语言的内置数据库操作接口 `database/sql/driver`。
+为TDengine提供了GO驱动程序 `taosSql` [taos-driver]，实现了GO语言的内置数据库操作接口 `database/sql/driver`。
 
 ## 提示
 
