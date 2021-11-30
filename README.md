@@ -2,7 +2,6 @@
 
 [![Build Status](https://cloud.drone.io/api/badges/taosdata/driver-go/status.svg)](https://cloud.drone.io/taosdata/driver-go)
 
-[English](README.md) | 简体中文
 
 [TDengine]提供了GO驱动程序 [`taosSql`][driver-go]，实现了GO语言的内置数据库操作接口 `database/sql/driver`。
 
@@ -57,7 +56,7 @@ import (
 )
 
 func main() {
-	var taosuri = "root:taosdata/tcp(localhost:6030)/"
+	var taosuri = "root:taosdata@/http(localhost:6041)/test"
 	taos, err := sql.Open("taosSql", taosuri)
 	if err != nil {
 		fmt.Println("failed to connect TDengine, err:", err)
@@ -118,6 +117,8 @@ func main() {
   sql.Open内置的方法，关闭DB对象。
 
 ## 导航
+
+taos-driver: [https://github.com/wenj91/taos-driver](https://github.com/wenj91/taos-driver)
 
 driver-go: [https://github.com/taosdata/driver-go](https://github.com/taosdata/driver-go)
 
