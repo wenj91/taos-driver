@@ -107,7 +107,7 @@ func convert(typ int, data interface{}) interface{} {
 	case BINARY_TYPE:
 
 	case TIMESTAMP_TYPE:
-		ts := data.(int64)
+		ts := int64(data.(float64))
 
 		tUnix := ts / int64(time.Microsecond)
 		tUnixNanoRemainder := (ts % int64(time.Microsecond)) * int64(time.Millisecond)
