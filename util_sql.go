@@ -87,15 +87,20 @@ func convert(typ int, data interface{}) interface{} {
 	// todo: convert data to dest type
 	switch typ {
 	case BOOL_TYPE:
-
+		b := data.(float64)
+		return b == 1
 	case TINYINT_TYPE:
-
+		t := data.(float64)
+		return int64(t)
 	case SMALLINT_TYPE:
-
+		si := data.(float64)
+		return int64(si)
 	case INT_TYPE:
-
+		i := data.(float64)
+		return int64(i)
 	case BIGINT_TYPE:
-
+		bi := data.(float64)
+		return int64(bi)
 	case FLOAT_TYPE:
 	case DOUBLE_TYPE:
 
