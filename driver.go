@@ -3,12 +3,10 @@ package taos
 import (
 	"database/sql/driver"
 	"errors"
-	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -47,8 +45,7 @@ func (driver *Driver) Open(name string) (driver.Conn, error) {
 
 func (driver *Driver) login() (string, error) {
 	url := "http://" +
-		driver.cfg.addr + ":" +
-		strconv.Itoa(driver.cfg.port) +
+		driver.cfg.getUri() +
 		"/rest/login/" +
 		driver.cfg.user + "/" +
 		driver.cfg.passwd
@@ -76,8 +73,7 @@ func (driver *Driver) useDB() error {
 
 func (driver *Driver) query(sql string) ([]byte, error) {
 	url := "http://" +
-		driver.cfg.addr + ":" +
-		strconv.Itoa(driver.cfg.port) +
+		driver.cfg.getUri() +
 		"/rest/sqlt/" +
 		driver.cfg.dbName
 
@@ -88,7 +84,6 @@ func (driver *Driver) query(sql string) ([]byte, error) {
 	req, err := http.NewRequest(method, url, payload)
 
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 
@@ -98,17 +93,15 @@ func (driver *Driver) query(sql string) ([]byte, error) {
 
 	res, err := driver.cli.Do(req)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
-	fmt.Println(string(body))
+	log.Println(string(body))
 
 	return body, nil
 }
@@ -119,22 +112,18 @@ func (driver *Driver) doGet(urlStr string) ([]byte, error) {
 	req, err := http.NewRequest(method, urlStr, nil)
 
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	res, err := driver.cli.Do(req)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
-	fmt.Println(string(body))
 
 	return body, nil
 }

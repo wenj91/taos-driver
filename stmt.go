@@ -88,6 +88,11 @@ func (stmt *taosStmt) Query(args []driver.Value) (driver.Rows, error) {
 	}
 
 	size := any.Get("rows").ToInt64()
+	if int(size) != len(data) {
+		size = int64(len(data))
+
+		log.Println("TDengine bug: result rows not equal data size")
+	}
 	taosRows := taosRows{
 		Size:        size,
 		Len:         size,

@@ -37,6 +37,16 @@ func newConfig() *config {
 	}
 }
 
+// getUri
+func(cfg *config) getUri() string {
+	str := cfg.addr
+	if  cfg.port != 0 {
+		str += ":" + strconv.Itoa(cfg.port)
+	}
+
+	return str
+}
+
 // ParseDSN parses the DSN string to a Config
 func parseDSN(dsn string) (cfg *config, err error) {
 	// New config with some default values
