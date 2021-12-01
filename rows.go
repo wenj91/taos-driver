@@ -42,7 +42,7 @@ func (r *taosRows) Next(dest []driver.Value) error {
 	}
 
 	for i, _ := range r.Cols {
-		data := convert(r.ColumnMetas[r.Len-r.Size].Type, r.Data[r.Len-r.Size][i])
+		data := convert(r.ColumnMetas[i].Type, r.Data[r.Len-r.Size][i])
 		dest[i] = data
 	}
 
