@@ -3,8 +3,6 @@ package taos
 import (
 	"database/sql/driver"
 	"errors"
-	"log"
-	"strings"
 )
 
 // conn for db open
@@ -15,9 +13,9 @@ type conn struct {
 
 // Prepare statement for prepare exec
 func (c *conn) Prepare(query string) (driver.Stmt, error) {
-	log.Println("prepare:", query)
+	// log.Println("prepare:", query)
 
-	paramCount := strings.Count(query, "?")
+	paramCount := paramsCount(query)
 	return &taosStmt{
 		sqlStr:     query,
 		conn:       c,

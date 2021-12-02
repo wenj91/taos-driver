@@ -21,7 +21,7 @@ func (stmt *taosStmt) Close() error {
 
 // Query  implement for Query
 func (stmt *taosStmt) Query(args []driver.Value) (driver.Rows, error) {
-	log.Println("do query", args)
+	// log.Println("do query", args)
 
 	querySql := stmt.sqlStr
 	if len(args) != 0 {
@@ -47,7 +47,13 @@ func (stmt *taosStmt) Query(args []driver.Value) (driver.Rows, error) {
 
 	status := any.Get("status").ToString()
 	if status != "succ" {
-		return nil, errors.New(any.Get("code").ToString() + ":" + any.Get("desc").ToString())
+		code := any.Get("code").ToInt32()
+		err, ok := errorMap[code]
+		if !ok {
+			return nil, errors.New("[" + any.Get("code").ToString() + "]:" + any.Get("desc").ToString())
+		}
+		
+		return nil, err
 	}
 
 	cms := make([]*columnMeta, 0)
@@ -137,7 +143,13 @@ func (stmt *taosStmt) Exec(args []driver.Value) (driver.Result, error) {
 
 	status := any.Get("status").ToString()
 	if status != "succ" {
-		return nil, errors.New("[" + any.Get("code").ToString() + "]:" + any.Get("desc").ToString())
+		code := any.Get("code").ToInt32()
+		err, ok := errorMap[code]
+		if !ok {
+			return nil, errors.New("[" + any.Get("code").ToString() + "]:" + any.Get("desc").ToString())
+		}
+		
+		return nil, err
 	}
 
 	re := &taosResult{

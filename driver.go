@@ -22,7 +22,7 @@ func init() {
 
 // Open for implement driver interface
 func (driver *Driver) Open(name string) (driver.Conn, error) {
-	log.Println("exec open driver")
+	// log.Println("exec open driver")
 
 	cfg, err := parseDSN(name)
 	if err != nil {
@@ -101,7 +101,7 @@ func (driver *Driver) query(sql string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println(string(body))
+	// log.Println(string(body))
 
 	return body, nil
 }

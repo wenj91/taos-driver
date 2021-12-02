@@ -41,6 +41,11 @@ func TestDb(t *testing.T) {
 		}
 	}
 
+	_, err = db.Exec(`create table if not exists MD5_fa0f7ac06608830346a51c03de15eaf2 using http_client_requests_seconds_sum tags("339ac2bfa5fd9d673a96f112ea0e738d","false",?,"xx.com","xxxx","dev","127.0.0.1","xx-service","GET","APP","xxx","200","xxx","xxx","/uu/get?corpid={1}&corpsecret={2}")`, "\"xxx\"")
+	if nil != err {
+		log.Fatal(err)
+	}
+
 	_, err = db.Exec(`insert into tb1 values ("2021-09-04 21:03:38.745", 2)`)
 	log.Println(err)
 
