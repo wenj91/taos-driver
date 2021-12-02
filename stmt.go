@@ -3,8 +3,9 @@ package taos
 import (
 	"database/sql/driver"
 	"errors"
-	jsoniter "github.com/json-iterator/go"
 	"log"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 // taosStmt for sql statement
@@ -52,7 +53,7 @@ func (stmt *taosStmt) Query(args []driver.Value) (driver.Rows, error) {
 		if !ok {
 			return nil, errors.New("[" + any.Get("code").ToString() + "]:" + any.Get("desc").ToString())
 		}
-		
+
 		return nil, err
 	}
 
@@ -97,7 +98,7 @@ func (stmt *taosStmt) Query(args []driver.Value) (driver.Rows, error) {
 	if int(size) != len(data) {
 		size = int64(len(data))
 
-		log.Println("TDengine bug: result rows not equal data size")
+		// log.Println("TDengine bug: result rows not equal data size, ", querySql, string(query))
 	}
 	taosRows := taosRows{
 		Size:        size,
@@ -135,7 +136,7 @@ func (stmt *taosStmt) Exec(args []driver.Value) (driver.Result, error) {
 
 	query, err := stmt.conn.drv.query(querySql)
 	if err != nil {
-		log.Println(err)
+		log.Println(querySql, err)
 		return nil, err
 	}
 
@@ -148,7 +149,7 @@ func (stmt *taosStmt) Exec(args []driver.Value) (driver.Result, error) {
 		if !ok {
 			return nil, errors.New("[" + any.Get("code").ToString() + "]:" + any.Get("desc").ToString())
 		}
-		
+
 		return nil, err
 	}
 

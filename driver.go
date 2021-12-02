@@ -3,17 +3,20 @@ package taos
 import (
 	"database/sql/driver"
 	"errors"
-	jsoniter "github.com/json-iterator/go"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
+	"time"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 // Driver mydb driver for implement database/sql/driver
 type Driver struct {
 	cfg *config
 	cli *http.Client
+	token string
 }
 
 func init() {
@@ -30,15 +33,26 @@ func (driver *Driver) Open(name string) (driver.Conn, error) {
 	}
 
 	driver.cfg = cfg
-	driver.cli = &http.Client{}
+
+	// 简单的http client配置，todo: http client 连接池管理http连接
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.MaxIdleConns = 100
+	t.MaxConnsPerHost = 100
+	t.MaxIdleConnsPerHost = 100
+
+	driver.cli = &http.Client{
+		Timeout: 30 * time.Second,
+		Transport: t,
+	}
 
 	token, err := driver.login()
 	if err != nil {
 		return nil, err
 	}
 
+	driver.token = token
+
 	return &conn{
-		token: token,
 		drv:   driver,
 	}, nil
 }
@@ -88,7 +102,8 @@ func (driver *Driver) query(sql string) ([]byte, error) {
 	}
 
 	// Set the auth for the request.
-	req.SetBasicAuth(driver.cfg.user, driver.cfg.passwd)
+	// req.SetBasicAuth(driver.cfg.user, driver.cfg.passwd)
+	req.Header.Add("Authorization", "Taosd " + driver.token)
 	req.Header.Add("Content-Type", "text/plain")
 
 	res, err := driver.cli.Do(req)

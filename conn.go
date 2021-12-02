@@ -7,7 +7,6 @@ import (
 
 // conn for db open
 type conn struct {
-	token string
 	drv   *Driver
 }
 
