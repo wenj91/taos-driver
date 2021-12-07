@@ -6,16 +6,18 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
+
+	// "strings"
 	"time"
 
 	jsoniter "github.com/json-iterator/go"
+	"github.com/valyala/fasthttp"
 )
 
 // Driver mydb driver for implement database/sql/driver
 type Driver struct {
-	cfg *config
-	cli *http.Client
+	cfg   *config
+	cli   *http.Client
 	token string
 }
 
@@ -41,7 +43,7 @@ func (driver *Driver) Open(name string) (driver.Conn, error) {
 	t.MaxIdleConnsPerHost = 100
 
 	driver.cli = &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout:   30 * time.Second,
 		Transport: t,
 	}
 
@@ -53,7 +55,7 @@ func (driver *Driver) Open(name string) (driver.Conn, error) {
 	driver.token = token
 
 	return &conn{
-		drv:   driver,
+		drv: driver,
 	}, nil
 }
 
@@ -91,34 +93,40 @@ func (driver *Driver) query(sql string) ([]byte, error) {
 		"/rest/sqlt/" +
 		driver.cfg.dbName
 
-	method := "POST"
-
-	payload := strings.NewReader(sql)
-
-	req, err := http.NewRequest(method, url, payload)
-
-	if err != nil {
-		return nil, err
-	}
-
-	// Set the auth for the request.
-	// req.SetBasicAuth(driver.cfg.user, driver.cfg.passwd)
-	req.Header.Add("Authorization", "Taosd " + driver.token)
+	req := fasthttp.AcquireRequest()
+	defer fasthttp.ReleaseRequest(req)
+	req.SetRequestURI(url)
+	// fasthttp does not automatically request a gzipped response.
+	// We must explicitly ask for it.
+	// req.Header.Set("Accept-Encoding", "gzip")
+	req.Header.Add("Authorization", "Taosd "+driver.token)
 	req.Header.Add("Content-Type", "text/plain")
+	req.Header.SetMethod(fasthttp.MethodPost)
+	req.SetBody([]byte(sql))
 
-	res, err := driver.cli.Do(req)
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseResponse(resp)
+
+	err := fasthttp.Do(req, resp)
+
 	if err != nil {
+		// log.Printf("Client get failed: %s\n", err)
 		return nil, err
 	}
-	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
+	// Do we need to decompress the response?
+	// contentEncoding := resp.Header.Peek("Content-Encoding")
+	// var body []byte
+	// if bytes.EqualFold(contentEncoding, []byte("gzip")) {
+	// 	// log.Println("Unzipping...")
+	// 	body, _ = resp.BodyGunzip()
+	// } else {
+	// 	body = resp.Body()
+	// }
+
 	// log.Println(string(body))
 
-	return body, nil
+	return resp.Body(), nil
 }
 
 func (driver *Driver) doGet(urlStr string) ([]byte, error) {
